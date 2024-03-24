@@ -4,6 +4,22 @@ use num_traits::{Euclid, Signed};
 
 use crate::consts::*;
 
+pub fn gcd(a: &BigInt, b: &BigInt) -> BigInt {
+    let mut a = a.clone();
+    let mut b = b.clone();
+    while &b != zero() {
+        let r = a.rem_euclid(&b);
+        a = b;
+        b = r;
+    }
+    a
+}
+
+pub fn lcm(a: &BigInt, b: &BigInt) -> BigInt {
+    let d = a / gcd(a, b);
+    d * b
+}
+
 /// `r == a*x + b*y`
 ///
 /// Particularly, if `r==1`, then

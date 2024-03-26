@@ -1,11 +1,11 @@
 use crate::{one, rand::RandFixedLength, small_primes, two, zero};
 use num_bigint::{BigInt, RandBigInt};
 use num_traits::Euclid;
-use rand::rngs::OsRng;
+use rand::{rngs::OsRng, RngCore};
 
-pub fn rand_prime(nbits: usize) -> BigInt {
+pub fn rand_prime(nbits: usize, rng: &mut impl RngCore) -> BigInt {
     loop {
-        let mut p = BigInt::rand_exact_nbits(nbits);
+        let mut p = BigInt::rand_exact_nbits(nbits, rng);
         p.set_bit(0, true); // make sure `p` is odd.
 
         if try_div(&p) == false {
@@ -19,7 +19,7 @@ pub fn rand_prime(nbits: usize) -> BigInt {
 
 /// q and p=2q+1 are both prime.
 /// In this case, they are called Sophie Germain prime and safe prime.
-pub fn rand_safe_prime(nbits: usize) -> BigInt {
+pub fn rand_safe_prime(nbits: usize, rng: &mut impl RngCore) -> BigInt {
     // see footnote (SP-1)
     fn half_small_prime(n: &BigInt) -> bool {
         for sp in small_primes()[1../* start from 3 */].iter() {
@@ -32,7 +32,7 @@ pub fn rand_safe_prime(nbits: usize) -> BigInt {
     }
 
     loop {
-        let mut q = BigInt::rand_exact_nbits(nbits - 1);
+        let mut q = BigInt::rand_exact_nbits(nbits - 1, rng);
         q.set_bit(0, true);
         // !!! WRONG !!! -- let p = &q << 1 + 1; -- it is parsed as &q << (1 + 1);
         let p: BigInt = (&q << 1) + 1;
@@ -161,13 +161,15 @@ mod tests {
 
     #[test]
     fn test_rand_prime() {
-        let p = rand_prime(2048);
+        let mut rng = OsRng;
+        let p = rand_prime(2048, &mut rng);
         println!("rand_prime: {}", p);
     }
 
     #[test]
     fn test_rand_safe_prime() {
-        let p = rand_safe_prime(2048);
+        let mut rng = OsRng;
+        let p = rand_safe_prime(512, &mut rng);
         println!("rand_safe_prime: {}", p);
     }
 }
